@@ -10,9 +10,10 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import { colors } from '../styles/colors';
-import { humorousTranslations } from '../constants/translations';
+import { translateText } from '../services/api';
 import type { TranslationMode, Theme } from '../types';
 
 const { width } = Dimensions.get('window');
@@ -40,27 +41,26 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
   const themeColors = isDark ? colors.dark : colors.light;
   const modeColors = mode === 'female-to-male' ? colors.femaleToMale : colors.maleToFemale;
 
-  const handleTranslate = () => {
+  const handleTranslate = async () => {
     if (!inputText.trim()) return;
 
     setIsTranslating(true);
 
-    setTimeout(() => {
-      const translations = humorousTranslations[mode];
-      const match = translations.find((t) =>
-        inputText.toLowerCase().includes(t.input.toLowerCase())
+    try {
+      const response = await translateText(inputText, mode);
+      setOutputText(response.translation);
+      onAddTranslation(inputText, response.translation);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Wystąpił nieznany błąd';
+      Alert.alert(
+        'Błąd tłumaczenia',
+        `Nie udało się przetłumaczyć tekstu: ${errorMessage}`,
+        [{ text: 'OK' }]
       );
-
-      const result = match
-        ? match.output
-        : mode === 'female-to-male'
-          ? 'Tłumaczenie: Tak naprawdę mam na myśli coś zupełnie innego, ale sama nie wiem co dokładnie 😊'
-          : 'Tłumaczenie: Nie mam pojęcia, ale nigdy się do tego nie przyznam 😎';
-
-      setOutputText(result);
-      onAddTranslation(inputText, result);
+      setOutputText('');
+    } finally {
       setIsTranslating(false);
-    }, 800);
+    }
   };
 
   const toggleMode = () => {

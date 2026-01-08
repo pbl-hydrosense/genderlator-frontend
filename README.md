@@ -10,10 +10,10 @@ A humorous React Native mobile translator app that interprets stereotypical comm
   - Female → Male: Decode what she *really* means
   - Male → Female: Understand what he's *actually* saying
 
-- 💬 **Smart Translation Engine**
-  - Pattern-matching for common phrases
-  - Humorous interpretations based on stereotypes
-  - Instant translation results
+- 💬 **AI-Powered Translation Engine**
+  - Google AI (Gemini) integration for smart translations
+  - Context-aware humorous interpretations
+  - Real-time translation results
 
 - 📜 **Translation History**
   - Save all your translations locally
@@ -52,7 +52,7 @@ A humorous React Native mobile translator app that interprets stereotypical comm
 cd genderlator-mobile
 ```
 
-2. **Install dependencies:**
+1. **Install dependencies:**
 
 ```bash
 npm install
@@ -62,17 +62,45 @@ pnpm install
 yarn install
 ```
 
-3. **Start the development server:**
+1. **Set up the backend:**
 
 ```bash
-npm start
+cd backend
+pnpm install
+cp .env.example .env
+# Edit .env and add your Google AI API key
 ```
 
-4. **Run on your device:**
+Get your API key from: <https://aistudio.google.com/app/apikey>
+
+1. **Start the backend server:**
+
+```bash
+cd backend
+pnpm run dev
+```
+
+The backend will run on `http://localhost:3001`
+
+1. **Start the mobile app (in a new terminal):**
+
+```bash
+pnpm start
+```
+
+1. **Run on your device:**
    - Scan the QR code with Expo Go (recommended)
    - Press `a` for Android emulator
    - Press `i` for iOS simulator (macOS only)
    - Press `w` for web browser
+
+### Backend API Configuration
+
+The mobile app connects to the backend API. Update `src/services/api.ts` if needed:
+
+- **Android Emulator**: Use `http://10.0.2.2:3001`
+- **iOS Simulator**: Use `http://localhost:3001`
+- **Physical Device**: Use your computer's local IP (e.g., `http://192.168.1.100:3001`)
 
 ### Troubleshooting Connection Issues
 
@@ -80,7 +108,7 @@ If you get "Request timed out" error on iOS:
 
 ```bash
 # Use tunnel mode to bypass network issues
-npx expo start --tunnel
+pnpx expo start --tunnel
 ```
 
 This works even if your phone and computer are on different networks.

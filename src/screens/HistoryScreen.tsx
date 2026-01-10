@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,19 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import type { Translation, Theme } from '../types';
+
+// Enable LayoutAnimation for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface HistoryScreenProps {
   translations: Translation[];
@@ -27,7 +37,28 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
   const isDark = theme === 'dark';
   const themeColors = isDark ? colors.dark : colors.light;
 
+  // Animation refs for list items
+  const animatedValues = useRef<{ [key: string]: Animated.Value }>({}).current;
+
+  // Initialize animation values for new translations
+  useEffect(() => {
+    translations.forEach((translation, index) => {
+      if (!animatedValues[translation.id]) {
+        animatedValues[translation.id] = new Animated.Value(0);
+        // Stagger animation for each item
+        Animated.timing(animatedValues[translation.id], {
+          toValue: 1,
+          duration: 300,
+          delay: index * 50,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  }, [translations]);
+
   const toggleExpand = (id: string) => {
+    // Animate layout change
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -53,7 +84,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           style={styles.iconButton}
           onPress={() => onNavigate('translator')}
         >
-          <Text style={styles.icon}>←</Text>
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
         
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
@@ -66,7 +97,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {translations.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📝</Text>
+            <Ionicons name="document-text-outline" size={64} color={themeColors.textSecondary} style={styles.emptyIcon} />
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
               Brak historii tłumaczeń
             </Text>
@@ -84,9 +115,12 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                 style={[styles.clearButton, { backgroundColor: isDark ? colors.dark.surface : '#FEE2E2' }]}
                 onPress={onClearHistory}
               >
-                <Text style={[styles.clearButtonText, { color: '#DC2626' }]}>
-                  🗑️ Wyczyść historię
-                </Text>
+                <View style={styles.clearButtonContent}>
+                  <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                  <Text style={[styles.clearButtonText, { color: '#DC2626' }]}>
+                    Wyczyść historię
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
             
@@ -95,66 +129,83 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                 const isFemaleToMale = translation.mode === 'female-to-male';
                 const isExpanded = expandedId === translation.id;
                 const modeColors = isFemaleToMale ? colors.femaleToMale : colors.maleToFemale;
+                const animValue = animatedValues[translation.id] || new Animated.Value(1);
 
                 return (
-                  <TouchableOpacity
+                  <Animated.View
                     key={translation.id}
-                    style={styles.translationItem}
-                    onPress={() => toggleExpand(translation.id)}
-                    activeOpacity={0.7}
+                    style={{
+                      opacity: animValue,
+                      transform: [{
+                        translateX: animValue.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-20, 0],
+                        }),
+                      }],
+                    }}
                   >
-                    {/* Original message */}
-                    <View style={[
-                      styles.messageContainer,
-                      { alignSelf: isFemaleToMale ? 'flex-start' : 'flex-end' }
-                    ]}>
-                      <View style={[
-                        styles.messageBubble,
-                        isDark
-                          ? { backgroundColor: isFemaleToMale ? 'rgba(233, 30, 99, 0.2)' : 'rgba(25, 118, 210, 0.2)' }
-                          : { backgroundColor: modeColors.accentLight }
-                      ]}>
-                        <View style={styles.messageHeader}>
-                          <Text style={styles.messageEmoji}>
-                            {isFemaleToMale ? '💁‍♀️' : '🧔‍♂️'}
-                          </Text>
-                          <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
-                            {formatTime(translation.timestamp)}
-                          </Text>
-                        </View>
-                        <Text style={[styles.messageText, { color: themeColors.text }]}>
-                          {translation.original}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Translated message */}
-                    {isExpanded && (
+                    <TouchableOpacity
+                      style={styles.translationItem}
+                      onPress={() => toggleExpand(translation.id)}
+                      activeOpacity={0.7}
+                    >
+                      {/* Original message */}
                       <View style={[
                         styles.messageContainer,
-                        { alignSelf: isFemaleToMale ? 'flex-end' : 'flex-start', marginTop: 12 }
+                        { alignSelf: isFemaleToMale ? 'flex-start' : 'flex-end' }
                       ]}>
                         <View style={[
                           styles.messageBubble,
                           isDark
-                            ? { backgroundColor: isFemaleToMale ? 'rgba(25, 118, 210, 0.2)' : 'rgba(233, 30, 99, 0.2)' }
-                            : { backgroundColor: isFemaleToMale ? colors.maleToFemale.secondary : colors.femaleToMale.secondary }
+                            ? { backgroundColor: isFemaleToMale ? 'rgba(233, 30, 99, 0.2)' : 'rgba(25, 118, 210, 0.2)' }
+                            : { backgroundColor: modeColors.accentLight }
                         ]}>
                           <View style={styles.messageHeader}>
-                            <Text style={styles.messageEmoji}>
-                              {isFemaleToMale ? '🧔‍♂️' : '💁‍♀️'}
-                            </Text>
+                            <MaterialCommunityIcons 
+                              name={isFemaleToMale ? 'face-woman' : 'face-man'} 
+                              size={20} 
+                              color={isFemaleToMale ? colors.femaleToMale.accent : colors.maleToFemale.accent} 
+                            />
                             <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
-                              Tłumaczenie
+                              {formatTime(translation.timestamp)}
                             </Text>
                           </View>
                           <Text style={[styles.messageText, { color: themeColors.text }]}>
-                            {translation.translated}
+                            {translation.original}
                           </Text>
                         </View>
                       </View>
-                    )}
-                  </TouchableOpacity>
+
+                      {/* Translated message */}
+                      {isExpanded && (
+                        <View style={[
+                          styles.messageContainer,
+                          { alignSelf: isFemaleToMale ? 'flex-end' : 'flex-start', marginTop: 12 }
+                        ]}>
+                          <View style={[
+                            styles.messageBubble,
+                            isDark
+                              ? { backgroundColor: isFemaleToMale ? 'rgba(25, 118, 210, 0.2)' : 'rgba(233, 30, 99, 0.2)' }
+                              : { backgroundColor: isFemaleToMale ? colors.maleToFemale.secondary : colors.femaleToMale.secondary }
+                          ]}>
+                            <View style={styles.messageHeader}>
+                              <MaterialCommunityIcons 
+                                name={isFemaleToMale ? 'face-man' : 'face-woman'} 
+                                size={20} 
+                                color={isFemaleToMale ? colors.maleToFemale.accent : colors.femaleToMale.accent} 
+                              />
+                              <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
+                                Tłumaczenie
+                              </Text>
+                            </View>
+                            <Text style={[styles.messageText, { color: themeColors.text }]}>
+                              {translation.translated}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
                 );
               })}
             </View>
@@ -185,9 +236,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
   },
-  icon: {
-    fontSize: 24,
-  },
   content: {
     flex: 1,
   },
@@ -201,8 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 80,
   },
-  emptyEmoji: {
-    fontSize: 64,
+  emptyIcon: {
     marginBottom: 16,
     opacity: 0.5,
   },
@@ -227,6 +274,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     alignItems: 'center',
+  },
+  clearButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   clearButtonText: {
     fontSize: 14,
@@ -256,9 +308,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
     gap: 8,
-  },
-  messageEmoji: {
-    fontSize: 20,
   },
   messageTime: {
     fontSize: 12,

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 const { width } = Dimensions.get('window');
@@ -90,9 +91,9 @@ export const SplashScreen: React.FC = () => {
           ]}
         >
           <View style={styles.logo}>
-            <Text style={styles.femaleSymbol}>♀</Text>
+            <Ionicons name="female" size={40} color={colors.femaleToMale.accent} />
             <View style={styles.divider} />
-            <Text style={styles.maleSymbol}>♂</Text>
+            <Ionicons name="male" size={40} color={colors.maleToFemale.accent} />
           </View>
         </Animated.View>
 
@@ -159,20 +160,12 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  femaleSymbol: {
-    fontSize: 48,
-    color: '#E91E63',
-  },
   divider: {
     width: 2,
     height: 48,
     backgroundColor: '#D1D5DB',
     borderRadius: 1,
     marginHorizontal: 4,
-  },
-  maleSymbol: {
-    fontSize: 48,
-    color: '#1976D2',
   },
   titleContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',

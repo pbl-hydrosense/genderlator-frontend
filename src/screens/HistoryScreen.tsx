@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import type { Translation, Theme } from '../types';
 
@@ -53,7 +54,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           style={styles.iconButton}
           onPress={() => onNavigate('translator')}
         >
-          <Text style={styles.icon}>←</Text>
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
         
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
@@ -66,7 +67,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {translations.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📝</Text>
+            <Ionicons name="document-text-outline" size={64} color={themeColors.textSecondary} style={styles.emptyIcon} />
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
               Brak historii tłumaczeń
             </Text>
@@ -84,9 +85,12 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                 style={[styles.clearButton, { backgroundColor: isDark ? colors.dark.surface : '#FEE2E2' }]}
                 onPress={onClearHistory}
               >
-                <Text style={[styles.clearButtonText, { color: '#DC2626' }]}>
-                  🗑️ Wyczyść historię
-                </Text>
+                <View style={styles.clearButtonContent}>
+                  <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                  <Text style={[styles.clearButtonText, { color: '#DC2626' }]}>
+                    Wyczyść historię
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
             
@@ -115,9 +119,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                           : { backgroundColor: modeColors.accentLight }
                       ]}>
                         <View style={styles.messageHeader}>
-                          <Text style={styles.messageEmoji}>
-                            {isFemaleToMale ? '💁‍♀️' : '🧔‍♂️'}
-                          </Text>
+                          <MaterialCommunityIcons 
+                            name={isFemaleToMale ? 'face-woman' : 'face-man'} 
+                            size={20} 
+                            color={isFemaleToMale ? colors.femaleToMale.accent : colors.maleToFemale.accent} 
+                          />
                           <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
                             {formatTime(translation.timestamp)}
                           </Text>
@@ -141,9 +147,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                             : { backgroundColor: isFemaleToMale ? colors.maleToFemale.secondary : colors.femaleToMale.secondary }
                         ]}>
                           <View style={styles.messageHeader}>
-                            <Text style={styles.messageEmoji}>
-                              {isFemaleToMale ? '🧔‍♂️' : '💁‍♀️'}
-                            </Text>
+                            <MaterialCommunityIcons 
+                              name={isFemaleToMale ? 'face-man' : 'face-woman'} 
+                              size={20} 
+                              color={isFemaleToMale ? colors.maleToFemale.accent : colors.femaleToMale.accent} 
+                            />
                             <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
                               Tłumaczenie
                             </Text>
@@ -185,9 +193,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
   },
-  icon: {
-    fontSize: 24,
-  },
   content: {
     flex: 1,
   },
@@ -201,8 +206,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 80,
   },
-  emptyEmoji: {
-    fontSize: 64,
+  emptyIcon: {
     marginBottom: 16,
     opacity: 0.5,
   },
@@ -227,6 +231,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     alignItems: 'center',
+  },
+  clearButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   clearButtonText: {
     fontSize: 14,
@@ -256,9 +265,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
     gap: 8,
-  },
-  messageEmoji: {
-    fontSize: 20,
   },
   messageTime: {
     fontSize: 12,

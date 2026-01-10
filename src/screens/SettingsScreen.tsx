@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Switch } from '../components/Switch';
 import { colors } from '../styles/colors';
 import type { Theme } from '../types';
@@ -33,13 +34,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           style={styles.iconButton}
           onPress={() => onNavigate('translator')}
         >
-          <Text style={styles.icon}>←</Text>
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
-        
+
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
           Ustawienia
         </Text>
-        
+
         <View style={{ width: 40 }} />
       </View>
 
@@ -49,7 +50,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <View style={styles.cardContent}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <Text style={styles.settingIcon}>{isDark ? '🌙' : '☀️'}</Text>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={24} color={isDark ? '#F59E0B' : '#F97316'} />
                 <View>
                   <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                     Tryb ciemny
@@ -72,23 +73,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <View style={[styles.card, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           <View style={styles.cardContent}>
             <View style={styles.aboutHeader}>
-              <Text style={styles.settingIcon}>ℹ️</Text>
+              <Ionicons name="information-circle-outline" size={24} color={themeColors.textSecondary} />
               <Text style={[styles.aboutTitle, { color: themeColors.text }]}>
                 O aplikacji
               </Text>
             </View>
-            
+
             <Text style={[styles.aboutText, { color: themeColors.textSecondary }]}>
-              GenderLator to żartobliwy translator „języka" kobiet i mężczyzn. 
+              GenderLator to żartobliwy translator „języka" kobiet i mężczyzn.
               Aplikacja tłumaczy stereotypowe wypowiedzi w sposób humorystyczny.
             </Text>
-            
+
             <Text style={[styles.aboutText, { color: themeColors.textSecondary, marginTop: 12 }]}>
-              To tylko zabawa! Nie bierz tłumaczeń na poważnie. 😊
+              To tylko zabawa! Nie bierz tłumaczeń na poważnie.
             </Text>
-            
+
             <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-            
+
             <Text style={[styles.version, { color: themeColors.textTertiary }]}>
               Wersja 1.0.0
             </Text>
@@ -99,18 +100,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <View style={[styles.card, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           <View style={styles.cardContent}>
             <View style={styles.aboutHeader}>
-              <Text style={styles.settingIcon}>💝</Text>
+              <Ionicons name="heart" size={24} color="#EC4899" />
               <Text style={[styles.aboutTitle, { color: themeColors.text }]}>
                 Podziękowania
               </Text>
             </View>
-            
+
             <Text style={[styles.aboutText, { color: themeColors.textSecondary }]}>
-              Stworzone z humorem i miłością do różnic między płciami. 
+              Stworzone z humorem i miłością do różnic między płciami.
             </Text>
-            
+
             <Text style={[styles.aboutText, { color: themeColors.textSecondary, marginTop: 12 }]}>
-              Pamiętaj: mężczyźni i kobiety są różni, ale każdy z nas jest wyjątkowy! ❤️
+              Pamiętaj: mężczyźni i kobiety są różni, ale każdy z nas jest wyjątkowy!
             </Text>
           </View>
         </View>
@@ -138,9 +139,6 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
     borderRadius: 12,
-  },
-  icon: {
-    fontSize: 24,
   },
   content: {
     flex: 1,
@@ -171,9 +169,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     flex: 1,
-  },
-  settingIcon: {
-    fontSize: 24,
   },
   settingTitle: {
     fontSize: 16,

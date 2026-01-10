@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import { translateText } from '../services/api';
 import type { TranslationMode, Theme } from '../types';
@@ -81,7 +82,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
             style={styles.iconButton}
             onPress={() => onNavigate('history')}
           >
-            <Text style={styles.icon}>📜</Text>
+            <Ionicons name="time-outline" size={24} color={themeColors.text} />
           </TouchableOpacity>
 
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>
@@ -92,7 +93,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
             style={styles.iconButton}
             onPress={() => onNavigate('settings')}
           >
-            <Text style={styles.icon}>⚙️</Text>
+            <Ionicons name="settings-outline" size={24} color={themeColors.text} />
           </TouchableOpacity>
         </View>
 
@@ -108,7 +109,11 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
           ]}>
             <View style={styles.modeIcons}>
               <View style={[styles.modeIcon, mode === 'female-to-male' && styles.activeIcon]}>
-                <Text style={styles.modeEmoji}>💁‍♀️</Text>
+                <MaterialCommunityIcons
+                  name="face-woman"
+                  size={48}
+                  color={mode === 'female-to-male' ? colors.femaleToMale.accent : themeColors.textSecondary}
+                />
                 <Text style={[styles.modeLabel, { color: themeColors.textSecondary }]}>
                   Kobieta
                 </Text>
@@ -121,11 +126,15 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                 ]}
                 onPress={toggleMode}
               >
-                <Text style={styles.swapIcon}>🔄</Text>
+                <Ionicons name="swap-horizontal" size={24} color={modeColors.accent} />
               </TouchableOpacity>
 
               <View style={[styles.modeIcon, mode === 'male-to-female' && styles.activeIcon]}>
-                <Text style={styles.modeEmoji}>🧔‍♂️</Text>
+                <MaterialCommunityIcons
+                  name="face-man"
+                  size={48}
+                  color={mode === 'male-to-female' ? colors.maleToFemale.accent : themeColors.textSecondary}
+                />
                 <Text style={[styles.modeLabel, { color: themeColors.textSecondary }]}>
                   Mężczyzna
                 </Text>
@@ -176,9 +185,12 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
             onPress={handleTranslate}
             disabled={!inputText.trim() || isTranslating}
           >
-            <Text style={styles.translateButtonText}>
-              {isTranslating ? 'Tłumaczę... ✨' : 'Przetłumacz ✨'}
-            </Text>
+            <View style={styles.translateButtonContent}>
+              <Text style={styles.translateButtonText}>
+                {isTranslating ? 'Tłumaczę...' : 'Przetłumacz'}
+              </Text>
+              <Ionicons name="sparkles" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+            </View>
           </TouchableOpacity>
 
           {/* Output Section */}
@@ -226,9 +238,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
   },
-  icon: {
-    fontSize: 24,
-  },
   content: {
     flex: 1,
   },
@@ -258,13 +267,10 @@ const styles = StyleSheet.create({
   activeIcon: {
     opacity: 1,
   },
-  modeEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
   modeLabel: {
     fontSize: 14,
     fontWeight: '500',
+    marginTop: 8,
   },
   swapButton: {
     width: 56,
@@ -277,9 +283,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
-  },
-  swapIcon: {
-    fontSize: 24,
   },
   modeDescription: {
     alignItems: 'center',
@@ -325,6 +328,10 @@ const styles = StyleSheet.create({
   },
   translateButtonDisabled: {
     opacity: 0.5,
+  },
+  translateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   translateButtonText: {
     color: '#FFFFFF',

@@ -12,7 +12,15 @@ export const SplashScreen: React.FC = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const titleFadeAnim = useRef(new Animated.Value(0)).current;
   const taglineFadeAnim = useRef(new Animated.Value(0)).current;
-  const dotsAnim = useRef(new Animated.Value(0)).current;
+  
+  // Individual dot animations for staggered effect
+  const dot1Scale = useRef(new Animated.Value(1)).current;
+  const dot1Opacity = useRef(new Animated.Value(0.6)).current;
+  const dot2Scale = useRef(new Animated.Value(1)).current;
+  const dot2Opacity = useRef(new Animated.Value(0.6)).current;
+  const dot3Scale = useRef(new Animated.Value(1)).current;
+  const dot3Opacity = useRef(new Animated.Value(0.6)).current;
+  const dotsContainerOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Logo animation
@@ -50,21 +58,50 @@ export const SplashScreen: React.FC = () => {
       useNativeDriver: true,
     }).start();
 
-    // Loading dots animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(dotsAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(dotsAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Show dots container
+    Animated.timing(dotsContainerOpacity, {
+      toValue: 1,
+      duration: 500,
+      delay: 1200,
+      useNativeDriver: true,
+    }).start();
+
+    // Individual dot animations with staggered delays (like framer-motion)
+    const createDotAnimation = (scaleAnim: Animated.Value, opacityAnim: Animated.Value, delay: number) => {
+      return Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            Animated.timing(scaleAnim, {
+              toValue: 1.5,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(opacityAnim, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(scaleAnim, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(opacityAnim, {
+              toValue: 0.6,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      );
+    };
+
+    createDotAnimation(dot1Scale, dot1Opacity, 0).start();
+    createDotAnimation(dot2Scale, dot2Opacity, 200).start();
+    createDotAnimation(dot3Scale, dot3Opacity, 400).start();
   }, []);
 
   const rotate = rotateAnim.interpolate({
@@ -123,10 +160,10 @@ export const SplashScreen: React.FC = () => {
         </Animated.View>
 
         {/* Loading Dots */}
-        <Animated.View style={[styles.dotsContainer, { opacity: dotsAnim }]}>
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+        <Animated.View style={[styles.dotsContainer, { opacity: dotsContainerOpacity }]}>
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot1Scale }], opacity: dot1Opacity }]} />
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot2Scale }], opacity: dot2Opacity }]} />
+          <Animated.View style={[styles.dot, { transform: [{ scale: dot3Scale }], opacity: dot3Opacity }]} />
         </Animated.View>
       </View>
     </LinearGradient>

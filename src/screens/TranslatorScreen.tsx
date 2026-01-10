@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
@@ -38,9 +40,96 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
   const [outputText, setOutputText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
 
+  // Animation values
+  const femaleScaleAnim = useRef(new Animated.Value(mode === 'female-to-male' ? 1.1 : 0.9)).current;
+  const femaleOpacityAnim = useRef(new Animated.Value(mode === 'female-to-male' ? 1 : 0.5)).current;
+  const maleScaleAnim = useRef(new Animated.Value(mode === 'male-to-female' ? 1.1 : 0.9)).current;
+  const maleOpacityAnim = useRef(new Animated.Value(mode === 'male-to-female' ? 1 : 0.5)).current;
+  const arrowAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const outputOpacityAnim = useRef(new Animated.Value(0)).current;
+  const outputTranslateYAnim = useRef(new Animated.Value(20)).current;
+
   const isDark = theme === 'dark';
   const themeColors = isDark ? colors.dark : colors.light;
   const modeColors = mode === 'female-to-male' ? colors.femaleToMale : colors.maleToFemale;
+
+  // Animate mode change
+  useEffect(() => {
+    const isFemaleToMale = mode === 'female-to-male';
+    
+    Animated.parallel([
+      Animated.timing(femaleScaleAnim, {
+        toValue: isFemaleToMale ? 1.1 : 0.9,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(femaleOpacityAnim, {
+        toValue: isFemaleToMale ? 1 : 0.5,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(maleScaleAnim, {
+        toValue: isFemaleToMale ? 0.9 : 1.1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(maleOpacityAnim, {
+        toValue: isFemaleToMale ? 0.5 : 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.timing(arrowAnim, {
+          toValue: isFemaleToMale ? 0 : 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, [mode]);
+
+  // Spinning animation for translate button
+  useEffect(() => {
+    if (isTranslating) {
+      spinAnim.setValue(0);
+      Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      spinAnim.setValue(0);
+    }
+  }, [isTranslating]);
+
+  // Animate output appearance
+  useEffect(() => {
+    if (outputText) {
+      outputOpacityAnim.setValue(0);
+      outputTranslateYAnim.setValue(20);
+      Animated.parallel([
+        Animated.timing(outputOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(outputTranslateYAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [outputText]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const handleTranslate = async () => {
     if (!inputText.trim()) return;
@@ -108,7 +197,13 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
             isDark ? { backgroundColor: themeColors.surface } : { backgroundColor: modeColors.secondary }
           ]}>
             <View style={styles.modeIcons}>
-              <View style={[styles.modeIcon, mode === 'female-to-male' && styles.activeIcon]}>
+              <Animated.View style={[
+                styles.modeIcon,
+                {
+                  transform: [{ scale: femaleScaleAnim }],
+                  opacity: femaleOpacityAnim,
+                }
+              ]}>
                 <MaterialCommunityIcons
                   name="face-woman"
                   size={48}
@@ -117,7 +212,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                 <Text style={[styles.modeLabel, { color: themeColors.textSecondary }]}>
                   Kobieta
                 </Text>
-              </View>
+              </Animated.View>
 
               <TouchableOpacity
                 style={[
@@ -129,7 +224,13 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                 <Ionicons name="swap-horizontal" size={24} color={modeColors.accent} />
               </TouchableOpacity>
 
-              <View style={[styles.modeIcon, mode === 'male-to-female' && styles.activeIcon]}>
+              <Animated.View style={[
+                styles.modeIcon,
+                {
+                  transform: [{ scale: maleScaleAnim }],
+                  opacity: maleOpacityAnim,
+                }
+              ]}>
                 <MaterialCommunityIcons
                   name="face-man"
                   size={48}
@@ -138,7 +239,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                 <Text style={[styles.modeLabel, { color: themeColors.textSecondary }]}>
                   Mężczyzna
                 </Text>
-              </View>
+              </Animated.View>
             </View>
 
             <View style={styles.modeDescription}>
@@ -189,13 +290,27 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
               <Text style={styles.translateButtonText}>
                 {isTranslating ? 'Tłumaczę...' : 'Przetłumacz'}
               </Text>
-              <Ionicons name="sparkles" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+              {isTranslating ? (
+                <Animated.View style={{ marginLeft: 8, transform: [{ rotate: spin }] }}>
+                  <Ionicons name="sparkles" size={20} color="#FFFFFF" />
+                </Animated.View>
+              ) : (
+                <Ionicons name="sparkles" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+              )}
             </View>
           </TouchableOpacity>
 
           {/* Output Section */}
           {outputText ? (
-            <View style={styles.section}>
+            <Animated.View 
+              style={[
+                styles.section,
+                {
+                  opacity: outputOpacityAnim,
+                  transform: [{ translateY: outputTranslateYAnim }],
+                }
+              ]}
+            >
               <Text style={[styles.sectionLabel, { color: themeColors.text }]}>
                 {mode === 'female-to-male' ? 'Co naprawdę miała na myśli:' : 'Co naprawdę miał na myśli:'}
               </Text>
@@ -207,7 +322,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                   {outputText}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -262,10 +377,6 @@ const styles = StyleSheet.create({
   },
   modeIcon: {
     alignItems: 'center',
-    opacity: 0.5,
-  },
-  activeIcon: {
-    opacity: 1,
   },
   modeLabel: {
     fontSize: 14,

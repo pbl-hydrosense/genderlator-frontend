@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,19 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import type { Translation, Theme } from '../types';
+
+// Enable LayoutAnimation for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface HistoryScreenProps {
   translations: Translation[];
@@ -28,7 +37,28 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
   const isDark = theme === 'dark';
   const themeColors = isDark ? colors.dark : colors.light;
 
+  // Animation refs for list items
+  const animatedValues = useRef<{ [key: string]: Animated.Value }>({}).current;
+
+  // Initialize animation values for new translations
+  useEffect(() => {
+    translations.forEach((translation, index) => {
+      if (!animatedValues[translation.id]) {
+        animatedValues[translation.id] = new Animated.Value(0);
+        // Stagger animation for each item
+        Animated.timing(animatedValues[translation.id], {
+          toValue: 1,
+          duration: 300,
+          delay: index * 50,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  }, [translations]);
+
   const toggleExpand = (id: string) => {
+    // Animate layout change
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -99,70 +129,83 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                 const isFemaleToMale = translation.mode === 'female-to-male';
                 const isExpanded = expandedId === translation.id;
                 const modeColors = isFemaleToMale ? colors.femaleToMale : colors.maleToFemale;
+                const animValue = animatedValues[translation.id] || new Animated.Value(1);
 
                 return (
-                  <TouchableOpacity
+                  <Animated.View
                     key={translation.id}
-                    style={styles.translationItem}
-                    onPress={() => toggleExpand(translation.id)}
-                    activeOpacity={0.7}
+                    style={{
+                      opacity: animValue,
+                      transform: [{
+                        translateX: animValue.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-20, 0],
+                        }),
+                      }],
+                    }}
                   >
-                    {/* Original message */}
-                    <View style={[
-                      styles.messageContainer,
-                      { alignSelf: isFemaleToMale ? 'flex-start' : 'flex-end' }
-                    ]}>
-                      <View style={[
-                        styles.messageBubble,
-                        isDark
-                          ? { backgroundColor: isFemaleToMale ? 'rgba(233, 30, 99, 0.2)' : 'rgba(25, 118, 210, 0.2)' }
-                          : { backgroundColor: modeColors.accentLight }
-                      ]}>
-                        <View style={styles.messageHeader}>
-                          <MaterialCommunityIcons 
-                            name={isFemaleToMale ? 'face-woman' : 'face-man'} 
-                            size={20} 
-                            color={isFemaleToMale ? colors.femaleToMale.accent : colors.maleToFemale.accent} 
-                          />
-                          <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
-                            {formatTime(translation.timestamp)}
-                          </Text>
-                        </View>
-                        <Text style={[styles.messageText, { color: themeColors.text }]}>
-                          {translation.original}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Translated message */}
-                    {isExpanded && (
+                    <TouchableOpacity
+                      style={styles.translationItem}
+                      onPress={() => toggleExpand(translation.id)}
+                      activeOpacity={0.7}
+                    >
+                      {/* Original message */}
                       <View style={[
                         styles.messageContainer,
-                        { alignSelf: isFemaleToMale ? 'flex-end' : 'flex-start', marginTop: 12 }
+                        { alignSelf: isFemaleToMale ? 'flex-start' : 'flex-end' }
                       ]}>
                         <View style={[
                           styles.messageBubble,
                           isDark
-                            ? { backgroundColor: isFemaleToMale ? 'rgba(25, 118, 210, 0.2)' : 'rgba(233, 30, 99, 0.2)' }
-                            : { backgroundColor: isFemaleToMale ? colors.maleToFemale.secondary : colors.femaleToMale.secondary }
+                            ? { backgroundColor: isFemaleToMale ? 'rgba(233, 30, 99, 0.2)' : 'rgba(25, 118, 210, 0.2)' }
+                            : { backgroundColor: modeColors.accentLight }
                         ]}>
                           <View style={styles.messageHeader}>
                             <MaterialCommunityIcons 
-                              name={isFemaleToMale ? 'face-man' : 'face-woman'} 
+                              name={isFemaleToMale ? 'face-woman' : 'face-man'} 
                               size={20} 
-                              color={isFemaleToMale ? colors.maleToFemale.accent : colors.femaleToMale.accent} 
+                              color={isFemaleToMale ? colors.femaleToMale.accent : colors.maleToFemale.accent} 
                             />
                             <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
-                              Tłumaczenie
+                              {formatTime(translation.timestamp)}
                             </Text>
                           </View>
                           <Text style={[styles.messageText, { color: themeColors.text }]}>
-                            {translation.translated}
+                            {translation.original}
                           </Text>
                         </View>
                       </View>
-                    )}
-                  </TouchableOpacity>
+
+                      {/* Translated message */}
+                      {isExpanded && (
+                        <View style={[
+                          styles.messageContainer,
+                          { alignSelf: isFemaleToMale ? 'flex-end' : 'flex-start', marginTop: 12 }
+                        ]}>
+                          <View style={[
+                            styles.messageBubble,
+                            isDark
+                              ? { backgroundColor: isFemaleToMale ? 'rgba(25, 118, 210, 0.2)' : 'rgba(233, 30, 99, 0.2)' }
+                              : { backgroundColor: isFemaleToMale ? colors.maleToFemale.secondary : colors.femaleToMale.secondary }
+                          ]}>
+                            <View style={styles.messageHeader}>
+                              <MaterialCommunityIcons 
+                                name={isFemaleToMale ? 'face-man' : 'face-woman'} 
+                                size={20} 
+                                color={isFemaleToMale ? colors.maleToFemale.accent : colors.femaleToMale.accent} 
+                              />
+                              <Text style={[styles.messageTime, { color: themeColors.textSecondary }]}>
+                                Tłumaczenie
+                              </Text>
+                            </View>
+                            <Text style={[styles.messageText, { color: themeColors.text }]}>
+                              {translation.translated}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
                 );
               })}
             </View>

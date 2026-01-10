@@ -43,6 +43,7 @@ A humorous React Native mobile translator app that interprets stereotypical comm
 - Node.js (v16 or higher)
 - npm or yarn or pnpm
 - Expo Go app on your phone ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent))
+- Google AI API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 ### Installation
 
@@ -52,7 +53,7 @@ A humorous React Native mobile translator app that interprets stereotypical comm
 cd genderlator-mobile
 ```
 
-1. **Install dependencies:**
+2. **Install dependencies:**
 
 ```bash
 npm install
@@ -62,56 +63,40 @@ pnpm install
 yarn install
 ```
 
-1. **Set up the backend:**
+3. **Set up your API key:**
 
 ```bash
-cd backend
-pnpm install
 cp .env.example .env
 # Edit .env and add your Google AI API key
 ```
 
-Get your API key from: <https://aistudio.google.com/app/apikey>
+Open `.env` and replace `your_api_key_here` with your actual Google AI API key:
 
-1. **Start the backend server:**
-
-```bash
-cd backend
-pnpm run dev
+```
+EXPO_PUBLIC_GOOGLE_AI_API_KEY=your_actual_api_key_here
 ```
 
-The backend will run on `http://localhost:3001`
+**Important:** The `EXPO_PUBLIC_` prefix is required for the API key to be accessible at runtime.
 
-1. **Start the mobile app (in a new terminal):**
+Get your API key from: <https://aistudio.google.com/app/apikey>
+
+4. **Start the app:**
 
 ```bash
 pnpm start
 ```
 
-1. **Run on your device:**
+5. **Run on your device:**
    - Scan the QR code with Expo Go (recommended)
    - Press `a` for Android emulator
    - Press `i` for iOS simulator (macOS only)
    - Press `w` for web browser
 
-### Backend API Configuration
+### Important Notes
 
-The mobile app connects to the backend API. Update `src/services/api.ts` if needed:
-
-- **Android Emulator**: Use `http://10.0.2.2:3001`
-- **iOS Simulator**: Use `http://localhost:3001`
-- **Physical Device**: Use your computer's local IP (e.g., `http://192.168.1.100:3001`)
-
-### Troubleshooting Connection Issues
-
-If you get "Request timed out" error on iOS:
-
-```bash
-# Use tunnel mode to bypass network issues
-pnpx expo start --tunnel
-```
-
-This works even if your phone and computer are on different networks.
+- **No backend server needed!** The app calls Google's Gemini API directly from the frontend
+- Make sure to keep your `.env` file secure and never commit it to version control
+- The app requires internet connection to translate text (calls Google AI API)
 
 ## 🎮 How to Use
 
@@ -155,14 +140,15 @@ The app greets you with an animated logo and automatically transitions to the tr
 
 - `@react-native-async-storage/async-storage` - Local data persistence
 - `expo-linear-gradient` - Beautiful gradient backgrounds
+- `expo-constants` - Access to environment variables
 - `react-native-reanimated` - Smooth 60fps animations
 - `expo-status-bar` - Status bar management
 
-### Development Tools
+### API Integration
 
-- Expo CLI - Development server
-- Metro Bundler - JavaScript bundling
-- TypeScript - Static type checking
+- **Google Gemini AI** - Direct API integration for AI-powered translations
+- No backend server required
+- Client-side API calls
 
 ## 📁 Project Structure
 
@@ -173,6 +159,8 @@ genderlator-mobile/
 ├── babel.config.js              # Babel configuration
 ├── package.json                 # Dependencies
 ├── tsconfig.json                # TypeScript config
+├── .env                         # Environment variables (API key)
+├── .env.example                 # Example environment file
 └── src/
     ├── screens/                 # App screens
     │   ├── SplashScreen.tsx     # Animated splash screen
@@ -182,6 +170,8 @@ genderlator-mobile/
     ├── components/              # Reusable components
     │   ├── Button.tsx           # Custom button
     │   └── Switch.tsx           # Custom switch
+    ├── services/                # API services
+    │   └── api.ts               # Gemini API integration
     ├── constants/               # App constants
     │   └── translations.ts      # Translation patterns
     ├── styles/                  # Styling
@@ -237,10 +227,11 @@ genderlator-mobile/
 
 ## 🔒 Privacy
 
-- All data stored locally on device
+- All translation history stored locally on device
+- API key stored securely in environment variables
+- Direct API calls to Google - no intermediary server
 - No analytics or tracking
-- No internet connection required (except for initial load)
-- No personal data collected
+- No personal data collected or stored
 
 ## 🎯 Future Enhancements
 
@@ -276,13 +267,17 @@ Educational project - free to use and modify.
 
 ## 👨‍💻 Development Notes
 
-This app was migrated from a React web application to React Native, showcasing:
+This app demonstrates modern React Native development:
 
-- Converting Tailwind CSS to StyleSheet
-- Replacing Framer Motion with React Native Animated API
-- Adapting Radix UI components to native equivalents
-- Implementing AsyncStorage instead of localStorage
-- Handling platform-specific concerns (SafeAreaView, KeyboardAvoidingView)
+- **Serverless Architecture**: Direct API integration without backend server
+- **Environment Variables**: Secure API key management with expo-constants
+- **Converting Web to Mobile**: Migrated from React web app
+  - Tailwind CSS → StyleSheet
+  - Framer Motion → React Native Animated API
+  - Radix UI → Native components
+  - localStorage → AsyncStorage
+- **Platform-Specific Handling**: SafeAreaView, KeyboardAvoidingView
+- **Google Gemini Integration**: Direct API calls with system prompts
 
 ## ⚠️ Important Note
 

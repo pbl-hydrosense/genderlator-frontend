@@ -5,6 +5,7 @@ import type { TranslationMode } from '../types';
 // Using EXPO_PUBLIC_ prefix for runtime access
 const GOOGLE_AI_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_AI_API_KEY || '';
 const GOOGLE_AI_MODEL = process.env.EXPO_PUBLIC_GOOGLE_AI_MODEL || 'gemini-flash-latest';
+const GOOGLE_AI_TEMPERATURE = parseFloat(process.env.EXPO_PUBLIC_GOOGLE_AI_TEMPERATURE || '1.3');
 
 // System prompts for different translation modes
 const SYSTEM_PROMPTS = {
@@ -130,7 +131,7 @@ export async function translateText(
         },
       ],
       generationConfig: {
-        temperature: 1.65,
+        temperature: GOOGLE_AI_TEMPERATURE,
         maxOutputTokens: 256,
         topP: 0.95,
       },

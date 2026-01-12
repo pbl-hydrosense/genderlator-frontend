@@ -112,6 +112,9 @@ export async function translateText(
     throw new Error('Missing or invalid text');
   }
 
+  // Limit text to 256 characters
+  const trimmedText = text.slice(0, 256);
+
   if (!mode || !['female-to-male', 'male-to-female'].includes(mode)) {
     throw new Error('Invalid mode. Must be "female-to-male" or "male-to-female"');
   }
@@ -131,7 +134,7 @@ export async function translateText(
       contents: [
         {
           role: 'user',
-          parts: [{ text: text }],
+          parts: [{ text: trimmedText }],
         },
       ],
       generationConfig: {
@@ -168,7 +171,7 @@ export async function translateText(
     return {
       translation,
       mode,
-      originalText: text,
+      originalText: trimmedText,
     };
   } catch (error) {
     console.error('Translation error:', error);

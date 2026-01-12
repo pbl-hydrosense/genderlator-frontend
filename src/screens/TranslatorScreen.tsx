@@ -264,7 +264,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
               isDark ? { backgroundColor: themeColors.surface, borderColor: themeColors.border } : { backgroundColor: modeColors.accentLight }
             ]}>
               <TextInput
-                style={[styles.input, { color: themeColors.text }]}
+                style={[styles.input, { color: themeColors.text, outlineStyle: 'none' } as any]}
                 placeholder={mode === 'female-to-male' ? 'np. "Nic mi nie jest"' : 'np. "Dobra"'}
                 placeholderTextColor={themeColors.textTertiary}
                 value={inputText}
@@ -272,6 +272,7 @@ export const TranslatorScreen: React.FC<TranslatorScreenProps> = ({
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
+                maxLength={256}
               />
             </View>
           </View>
